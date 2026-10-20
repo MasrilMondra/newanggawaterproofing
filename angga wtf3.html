@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Generator - Angga Waterproofing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- ... (CSS tetap sama seperti sebelumnya) ... -->
+</head>
+<body>
+
+<div class="container">
+    <h2>Data Invoice</h2>
+    <input type="date" id="tanggal" style="margin-bottom:10px;">
+    <input type="text" id="klien" placeholder="Kepada YTH" style="width:100%; margin-bottom:5px;">
+    <input type="text" id="lokasi" placeholder="Lokasi Proyek" style="width:100%; margin-bottom:10px;">
+    <textarea id="beritaAcara" placeholder="Keterangan Berita Acara..."></textarea>
+
+    <h3>Detail Pekerjaan (5 Baris)</h3>
+    <div id="pekerjaan-list">
+        <script>
+            for(let i=1; i<=5; i++) {
+                document.write(`<div class="row"><input type="text" id="desc${i}" placeholder="Pekerjaan ${i}"><input type="text" id="sat${i}" placeholder="Sat" style="flex:0.3"><input type="number" id="vol${i}" placeholder="Vol" style="flex:0.3"><input type="number" id="hrg${i}" placeholder="Harga" style="flex:0.5"></div>`);
+            }
+        </script>
+    </div>
+    <button onclick="generatePDF()">Generate Invoice PDF</button>
+</div>
+
+<script>
+    function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Header
+        doc.setFontSize(22);
+        doc.text("ANGGA WATERPROOFING", 20, 20);
+        doc.setFontSize(10);
+        doc.text("Tanggal: " + document.getElementById('tanggal').value, 150, 20);
+        doc.line(20, 25, 190, 25);
+        
+        // Info
+        doc.setFontSize(12);
+        doc.text("Kepada: " + document.getElementById('klien').value, 20, 35);
+        doc.text("Lokasi: " + document.getElementById('lokasi').value, 20, 42);
+        
+        // Berita Acara
+        doc.text("Berita Acara:", 20, 55);
+        doc.text(document.getElementById('beritaAcara').value, 20, 62, { maxWidth: 170 });
+        
+        // Tabel dengan Grid
+        let y = 85;
+        doc.text("DETAIL PEKERJAAN", 20, y);
+        y += 5;
+        
+        // Header Tabel
+        doc.rect(20, y, 170, 10); // Kotak Header
+        doc.text("No", 22, y+7); doc.text("Pekerjaan", 35, y+7); doc.text("Sat", 85, y+7); 
+        doc.text("Vol", 100, y+7); doc.text("Harga", 125, y+7); doc.text("Jumlah", 155, y+7);
+        y += 10;
+        
+        let grandTotal = 0;
+        for(let i=1; i<=5; i++) {
+            let d = document.getElementById(`desc${i}`).value;
+            let s = document.getElementById(`sat${i}`).value;
+            let v = parseFloat(document.getElementById(`vol${i}`).value) || 0;
+            let h = parseFloat(document.getElementById(`hrg${i}`).value) || 0;
+            
+            if(d) {
+                let sub = v * h;
+                grandTotal += sub;
+                // Garis baris tabel
+                doc.rect(20, y, 170, 10);
+                doc.text(`${i}`, 22, y+7); doc.text(d, 35, y+7); doc.text(s, 85, y+7);
+                doc.text(`${v}`, 100, y+7); doc.text(`${h.toLocaleString()}`, 125, y+7);
+                doc.text(`${sub.toLocaleString()}`, 155, y+7);
+                y += 10;
+            }
+        }
+        
+        // Total & TTD
+        y += 10;
+        doc.text("TOTAL BIAYA: Rp " + grandTotal.toLocaleString(), 190, y, { align: 'right' });
+        doc.text("Hormat Kami,", 150, y + 20);
+        doc.text("Angga Hidayat", 150, y + 40);
+        
+        doc.save("Invoice_Angga_Waterproofing.pdf");
+    }
+</script>
+</body>
+</html>
